@@ -35,7 +35,7 @@ int		main(int argc, char **argv)
 	select = CS;
 	ft_init(argv, select);
 	deplace_term(SIGWINCH);
-	process();
+	process(NULL);
 	reset_term(select->term);
 	return (0);
 }

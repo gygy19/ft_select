@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   print_lenght.c                                     :+:      :+:    :+:   */
+/*   print_length.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jguyet <jguyet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -76,7 +76,8 @@ static void		print_dir(int i2, int i, int line, t_select *args)
 	if (args->selected[i2] == 1)
 		ft_putstr_fd(SELECTED, args->fd);
 	if (args->selected[i2] != -1)
-		ft_putstr_fd(args->lst[i2], args->fd);
+		print_color(args->lst[i2], args->fd,
+			args->selected[i2], args->cursor_y == i && args->cursor_x == vs);
 	if ((args->selected[i2] == 1)
 		|| (args->cursor_y == i && args->cursor_x == vs))
 		ft_putstr_fd(ENDCOLOR, args->fd);

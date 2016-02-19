@@ -6,7 +6,7 @@
 #    By: jguyet <jguyet@student.42.fr>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2016/02/10 23:10:35 by jguyet            #+#    #+#              #
-#    Updated: 2016/02/12 22:15:51 by jguyet           ###   ########.fr        #
+#    Updated: 2016/02/19 04:04:03 by jguyet           ###   ########.fr        #
 #                                                                              #
 #******************************************************************************#
 
@@ -31,7 +31,8 @@ INC_PATH =		./includes/
 
 SRC_NAME =		main.c			term.c			list.c\
 				key.c			tools.c			signal.c\
-				sorting.c		print_lenght.c
+				sorting.c		print_length.c	colors.c\
+				auto_complet.c
 
 OBJ_NAME =		$(SRC_NAME:.c=.o)
 

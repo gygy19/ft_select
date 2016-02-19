@@ -32,9 +32,11 @@
 # define CURSOR "\e[4m"
 # define SELECTED "\e[1;32m"
 # define ENDCOLOR "\e[00m"
+# define COLORC "\e[31m"
+# define COLORDIR "\e[34m"
 
 # define DIRECTION (key == 183 || key == 184 || key == 185 || key == 186)
-# define DELETE_KEY (key == 140 || key == 295)
+# define DELETE_KEY (key == 127 || key == 295)
 
 typedef struct		s_select
 {
@@ -55,7 +57,7 @@ t_select			*create_select(void);
 int					tputs_putchar(int c);
 void				ft_error_malloc(char *str);
 int					get_next_key(void);
-void				process(void);
+void				process(char *autoc);
 void				ft_error(char *str);
 void				ctrlc(int sigint);
 void				ctrlz(int sigquit);
@@ -71,5 +73,7 @@ void				deplace_term(int sigwinch);
 void				print_cursor(int key);
 void				return_value(void);
 int					get_long_work(t_select *args);
+void				print_color(char *name, int fd, int mode, int curs);
+char				*get_auto_complet(char *autoc, t_select *s, int key);
 
 #endif

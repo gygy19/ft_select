@@ -16,6 +16,9 @@
 
 #include "select.h"
 
+#include <curses.h>
+#include <term.h>
+
 static void		verif_1(t_select *s, int key)
 {
 	if (s->cursor_x <= 0 && s->cursor_y < 0)
@@ -106,7 +109,7 @@ int				get_next_key(void)
 	return (touch);
 }
 
-void			process(void)
+void			process(char *autoc)
 {
 	int key;
 
@@ -130,5 +133,6 @@ void			process(void)
 			return ;
 	if (key == ESC)
 		return ;
-	process();
+	autoc = get_auto_complet(autoc, CS, key);
+	process(autoc);
 }
