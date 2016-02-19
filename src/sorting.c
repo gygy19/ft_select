@@ -73,8 +73,8 @@ char		**sort_tab(char **tab, size_t tab_size, int f(char **, size_t))
 
 void		add_args(char **args, t_select *s)
 {
-	int i;
-	char **lst_r;
+	int		i;
+	char	**lst_r;
 
 	i = 0;
 	while (args[i])
@@ -83,7 +83,7 @@ void		add_args(char **args, t_select *s)
 	s->lst = lst_r;
 	if (!(s->selected = (int *)malloc(sizeof(int) * (i + 1))))
 		ft_error_malloc("[add_args] by int **");
-	s->selected[i + 1] = 0;
+	s->selected[i] = 0;
 	s->size = i;
 	while (i > 0)
 	{

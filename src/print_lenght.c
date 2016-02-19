@@ -12,7 +12,10 @@
 
 #include "select.h"
 
-int			get_long_work(t_select *args)
+#include <curses.h>
+#include <term.h>
+
+int				get_long_work(t_select *args)
 {
 	int i;
 	int len;
@@ -21,91 +24,34 @@ int			get_long_work(t_select *args)
 	len = 0;
 	while (i < args->size)
 	{
-		if ((int)(ft_strlen(args->lst[i]) + 1) > len)
+		if (args->selected[i] != -1 && (int)(ft_strlen(args->lst[i]) + 1) > len)
 			len = ft_strlen(args->lst[i]) + 1;
 		i++;
 	}
 	return (len);
 }
 
-int			get_line(int win_size, int long_work)
+static int		get_x_and_y(t_select *args, int line, int w)
 {
-	int line;
-	int i;
-	int lim;
-
-	line = long_work;
-	i = 1;
-	lim = long_work - 1;
-	while (line < (win_size - lim))
+	if (line > args->size)
 	{
-		line += long_work;
-		i++;
+		args->size_y = args->size;
+		args->size_x = 1;
+		line = args->size;
 	}
-	return (i);
-}
-
-int			get_ll(int line, t_select *args)
-{
-	int ret;
-	int i;
-	int o;
-
-	i = 0;
-	ret = 1;
-	o = 1;
-	while (i < args->size)
+	else
 	{
-		if (o > line)
-		{
-			o = 1;
-			ret++;
-		}
-		o++;
-		i++;
+		args->size_y = line;
+		args->size_x = (args->size / line) + 1;
 	}
-	return (ret);
+	(void)w;
+	tputs(tgoto(tgetstr("cm", NULL), 0, 0), FD, tputs_putchar);
+	tputs(tgetstr("cd", NULL), FD, tputs_putchar);
+	tputs(tgoto(tgetstr("cm", NULL), 0, 0), FD, tputs_putchar);
+	return (line);
 }
 
-int			g_t(char *dir, char *file, int flags)
-{
-	//char	*tmp;
-	(void)dir;
-	(void)file;
-	(void)flags;
-	int		ret;
-
-	ret = 0;
-	/*if (flags & FLAG_FF)
-	{
-		tmp = get_infos(file, dir);
-		if (is_lnk(tmp))
-			return (1);
-		else if (is_dir(tmp))
-			return (1);
-		else if (is_exe(tmp))
-			return (1);
-		free(tmp);
-	}*/
-	return (ret);
-}
-
-void		get_x(t_select *args)
-{
-	int		i;
-	int		ret;
-
-	i = 0;
-	ret = 0;
-	while (args->lst[i])
-	{
-		i += args->size_y;
-		ret++;
-	}
-	args->size_x = ret;
-}
-
-int			get_vs(int i, int i2, int line)
+static int		get_vs(int i, int i2, int line)
 {
 	int nbr;
 
@@ -118,7 +64,25 @@ int			get_vs(int i, int i2, int line)
 	return (nbr);
 }
 
-void		print_length(t_select *args, int f, int win_size, char *d)
+static void		print_dir(int i2, int i, int line, t_select *args)
+{
+	int vs;
+
+	if (args->selected[i2] == -1 || args->lst[i2] == NULL)
+		return ;
+	vs = get_vs(i, i2, line);
+	if (args->cursor_y == i && args->cursor_x == vs)
+		ft_putstr_fd(CURSOR, args->fd);
+	if (args->selected[i2] == 1)
+		ft_putstr_fd(SELECTED, args->fd);
+	if (args->selected[i2] != -1)
+		ft_putstr_fd(args->lst[i2], args->fd);
+	if ((args->selected[i2] == 1)
+		|| (args->cursor_y == i && args->cursor_x == vs))
+		ft_putstr_fd(ENDCOLOR, args->fd);
+}
+
+void			print_length(t_select *args, int win_size)
 {
 	int		line;
 	int		i;
@@ -127,56 +91,22 @@ void		print_length(t_select *args, int f, int win_size, char *d)
 	int		w;
 
 	w = get_long_work(args);
-	line = get_line(win_size, w);
-	line = get_ll(line, args);
-	args->size_y = line;
-	get_x(args);
-	int gomme;
-	int total;
-
-	gomme = 0;
-	total = 0;
+	line = win_size;
+	line = get_x_and_y(args, line, w);
 	i = 0;
-	while (i < line)//ligne en cour
+	while (i < line)
 	{
 		i2 = i;
-		while (args->lst[i2])//id en cour
+		if (i != 0)
+			ft_putstr_fd("\n", args->fd);
+		while (i2 < args->size && args->lst[i2])
 		{
-				s = ((w - ft_strlen(args->lst[i2])) - g_t(d, args->lst[i2], f));
-			if (args->selected[i2] == -1)
-			{
-				i2 += line;
-				gomme++;
-				continue ;
-			}
-			total += s + ft_strlen(args->lst[i2]);
-			if (args->cursor_y == i && args->cursor_x == get_vs(i, i2, line))
-				ft_putstr_fd("\e[4m", FD);
-			if (args->selected[i2] == 1)
-				ft_putstr_fd("\e[1;32m", FD);
-			if (args->selected[i2] != -1)
-				ft_putstr_fd(args->lst[i2], FD);
-			if (args->selected[i2] == 1 || (args->cursor_y == i && args->cursor_x == get_vs(i, i2, line)))
-				ft_putstr_fd("\e[00m", args->fd);
-			//put_color_type_length(d, args->lst[i2], f);
-			if (i2 < (args->size))
-				while (s-- > 0)
-					ft_putchar_fd(' ', FD);
-			i2 += line;//line = a hauteur max
+			s = ((w - ft_strlen(args->lst[i2])));
+			print_dir(i2, i, line, args);
+			while (i2 < (args->size) && s-- > 0)
+				ft_putchar_fd(' ', args->fd);
+			i2 += line;
 		}
-		while (total < win_size)
-		{
-			ft_putchar_fd(' ', FD);
-			total++;
-		}
-		total = 0;
-		ft_putstr_fd("\n", FD);
 		i++;
 	}
-	if (gomme)
-		while (total < win_size)
-		{
-			ft_putchar_fd(' ', FD);
-			total++;
-		}
 }

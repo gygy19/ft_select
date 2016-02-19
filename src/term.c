@@ -18,17 +18,21 @@
 #include <term.h>
 #include <unistd.h>
 
+int		tputs_putchar(int c)
+{
+	write(FD, &c, 1);
+	return (1);
+}
+
 int		modif_term(struct termios *term)
 {
 	if (tgetent(NULL, getenv("TERM")) != 1)
-		ft_error("[modif_term] Unknow TERM variable\n");
+		ft_error("[ft_select] Unknow TERM variable\n");
 	if (tcgetattr(0, term) == -1)
 		ft_error("[modif_term] Failed request tcgetattr!\n");
 	tputs(tgetstr("ti", NULL), 1, tputs_putchar);
 	tputs(tgetstr("vi", NULL), 1, tputs_putchar);
 	term->c_lflag &= ~(ICANON | ECHO);
-	term->c_cc[VMIN] = 1;
-	term->c_cc[VTIME] = 0;
 	if (tcsetattr(0, TCSADRAIN, term) == -1)
 		return (0);
 	return (1);

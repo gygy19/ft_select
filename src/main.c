@@ -16,7 +16,7 @@
 
 #include "select.h"
 
-void				ft_init(char **args, t_select *s)
+void	ft_init(char **args, t_select *s)
 {
 	if ((s->fd = open("/dev/tty", O_RDWR)) == -1)
 		return ;
@@ -31,8 +31,10 @@ int		main(int argc, char **argv)
 	if (argc < 2)
 		return (-1);
 	signal(SIGINT, ctrlc);
+	signal(SIGWINCH, deplace_term);
 	select = CS;
 	ft_init(argv, select);
+	deplace_term(SIGWINCH);
 	process();
 	reset_term(select->term);
 	return (0);

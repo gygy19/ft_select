@@ -17,7 +17,6 @@
 
 # include "libft.h"
 
-
 # define CS create_select()
 # define FD (CS->fd)
 # define TERM (CS->term)
@@ -32,8 +31,7 @@
 
 # define CURSOR "\e[4m"
 # define SELECTED "\e[1;32m"
-# define ENDCOLOR "\033[00m"
-
+# define ENDCOLOR "\e[00m"
 
 # define DIRECTION (key == 183 || key == 184 || key == 185 || key == 186)
 # define DELETE_KEY (key == 140 || key == 295)
@@ -60,12 +58,18 @@ int					get_next_key(void);
 void				process(void);
 void				ft_error(char *str);
 void				ctrlc(int sigint);
-void				ctrlz(int sigstp);
+void				ctrlz(int sigquit);
 void				print_lst(void);
 void				print_select(void);
-void				delete_value(void);
+int					delete_value(t_select *s);
 void				print_cursor(int key);
 void				add_args(char **args, t_select *s);
-void				print_length(t_select *args, int f, int win_size, char *d);
+void				print_length(t_select *args, int win_size);
+size_t				get_size_x(void);
+size_t				get_size_y(void);
+void				deplace_term(int sigwinch);
+void				print_cursor(int key);
+void				return_value(void);
+int					get_long_work(t_select *args);
 
 #endif

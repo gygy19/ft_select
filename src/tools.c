@@ -12,6 +12,7 @@
 
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 
 #include "select.h"
 
@@ -31,11 +32,30 @@ t_select		*create_select(void)
 	return (s);
 }
 
-
-int				tputs_putchar(int c)
+size_t			get_size_x(void)
 {
-	write(FD, &c, 1);
-	return (1);
+	size_t			size;
+	struct winsize	*w;
+
+	if (!(w = malloc(sizeof(struct winsize))))
+		ft_error_malloc("[get_size] struct winsize");
+	ioctl(0, TIOCGWINSZ, w);
+	size = (size_t)w->ws_col;
+	free(w);
+	return (size);
+}
+
+size_t			get_size_y(void)
+{
+	size_t			size;
+	struct winsize	*w;
+
+	if (!(w = malloc(sizeof(struct winsize))))
+		ft_error_malloc("[get_size] struct winsize");
+	ioctl(0, TIOCGWINSZ, w);
+	size = (size_t)w->ws_row;
+	free(w);
+	return (size);
 }
 
 void			ft_error_malloc(char *str)

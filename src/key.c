@@ -10,89 +10,82 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#include <unistd.h>
+#include <stdlib.h>
+#include <termios.h>
+
 #include "select.h"
 
-#include <unistd.h>
-#include <term.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-
-void		return_value(void)
+static void		verif_1(t_select *s, int key)
 {
-	t_select *s;
-	int i;
-	int first;
-
-	i = 0;
-	s = CS;
-	first = 1;
-	while (s->lst[i])
+	if (s->cursor_x <= 0 && s->cursor_y < 0)
 	{
-		if (s->selected[i] == 1)
-		{
-			if (!first)
-				ft_putstr(" ");
-			ft_putstr(s->lst[i]);
-			first = 0;
-		}
-		i++;
+		s->cursor_x = s->size_x - 1;
+		s->cursor_y = s->size_y - 1;
 	}
-}
-
-void		print_cursor(int key)
-{
-	if (key == KEYDOWN)
-		CS->cursor_y++;
-	if (key == KEYUP)
-		CS->cursor_y--;
-	if (key == KEYRIGHT)
-		CS->cursor_x++;
-	if (key == KEYLEFT)
-		CS->cursor_x--;
-	if (CS->cursor_x == 0 && CS->cursor_y < 0)
-	{
-		CS->cursor_x = CS->size_x - 1;
-		CS->cursor_y = CS->size_y - 1;
-	}
-	if ((((CS->cursor_x + 1) * CS->size_y) - (CS->size_y - CS->cursor_y)) >= (CS->size - 1))
+	if ((((s->cursor_x + 1) * s->size_y)
+		- (s->size_y - s->cursor_y)) >= (s->size - 1))
 	{
 		if (key == KEYDOWN)
 		{
-			CS->cursor_x = 0;
-			CS->cursor_y = 0;
+			s->cursor_x = 0;
+			s->cursor_y = 0;
 		}
 		if (key == KEYRIGHT || key == KEYLEFT)
-			CS->cursor_x = 0;
+			s->cursor_x = 0;
 		else if (key == KEYUP)
 			print_cursor(KEYUP);
 		else
 		{
-			CS->cursor_x = 0;
+			s->cursor_x = 0;
 		}
 	}
-	if (CS->cursor_y > (CS->size_y - 1))
+}
+
+static void		verif_2(t_select *s, int key)
+{
+	if (s->cursor_y > (s->size_y - 1))
 	{
-		CS->cursor_y = 0;
-		CS->cursor_x++;
+		s->cursor_y = 0;
+		s->cursor_x++;
 	}
-	if (CS->cursor_x > (CS->size_x - 1))
-		CS->cursor_x = 0;
-	if (CS->cursor_y < 0)
+	if (s->cursor_x > (s->size_x - 1))
+		s->cursor_x = 0;
+	if (s->cursor_y < 0)
 	{
-		CS->cursor_y = CS->size_y - 1;
-		CS->cursor_x--;
+		s->cursor_y = s->size_y - 1;
+		s->cursor_x--;
 	}
-	if (CS->cursor_x < 0)
+	if (s->cursor_x < 0)
 	{
-		CS->cursor_x = CS->size_x - 1;
-		if ((((CS->cursor_x + 1) * CS->size_y) - (CS->size_y - CS->cursor_y)) >= (CS->size - 1))
+		s->cursor_x = s->size_x - 1;
+		if ((((s->cursor_x + 1) * s->size_y)
+			- (s->size_y - s->cursor_y)) >= (s->size - 1))
 			print_cursor(KEYLEFT);
 	}
-	if (CS->selected[(((CS->cursor_x + 1) * CS->size_y) - (CS->size_y - CS->cursor_y))] == -1)
+	if (s->selected[(((s->cursor_x + 1) * s->size_y)
+		- (s->size_y - s->cursor_y))] == -1)
 		print_cursor(key);
 }
 
-int		get_next_key(void)
+void			print_cursor(int key)
+{
+	t_select *s;
+
+	s = CS;
+	if (key == KEYDOWN)
+		s->cursor_y++;
+	if (key == KEYUP)
+		s->cursor_y--;
+	if (key == KEYRIGHT)
+		s->cursor_x++;
+	if (key == KEYLEFT)
+		s->cursor_x--;
+	verif_1(s, key);
+	verif_2(s, key);
+}
+
+int				get_next_key(void)
 {
 	char	buff[6];
 	int		ret;
@@ -113,48 +106,29 @@ int		get_next_key(void)
 	return (touch);
 }
 
-size_t		get_size(void)
-{
-	size_t			size;
-	struct winsize	*w;
-
-	if (!(w = malloc(sizeof(struct winsize))))
-		ft_error_malloc("[get_size] struct winsize");
-	ioctl(0, TIOCGWINSZ, w);
-	size = (size_t)w->ws_col;
-	free(w);
-	return (size);
-}
-
-void	process(void)
+void			process(void)
 {
 	int key;
 
-	ft_putstr_fd("\033[H", FD);
-	print_length(CS, 0, get_size(), NULL);
+	deplace_term(0);
 	key = get_next_key();
+	TERM->c_lflag &= ~(ICANON | ECHO);
+	if (tcsetattr(0, TCSADRAIN, TERM) == -1)
+		return ;
 	if (DIRECTION)
 		print_cursor(key);
 	else if (key == SPACE)
 		print_select();
-	else if (DELETE_KEY)
-		delete_value();
 	else if (key == ENTER)
 	{
 		reset_term(CS->term);
 		return_value();
 		exit(0);
 	}
-	if (key == ESC || key == ENTER)
+	else if (DELETE_KEY)
+		if (delete_value(CS) == 1)
+			return ;
+	if (key == ESC)
 		return ;
-	/*KEY*/
-	//up : 183
-	//down : 184
-	//left : 186
-	//right : 185
-	//space : 45
-	//enter : 23
-	//delete : 140 & 295
-	//echape : 40
 	process();
 }
